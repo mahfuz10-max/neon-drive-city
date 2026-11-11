@@ -1,0 +1,12 @@
+# Netlify Deployment Configuration for Dhaka Streets: Open World
+# Deploys directly as a fast static ES-module + Three.js WebGL application with zero build failures.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Cache-Control = "public, max-age=3600"

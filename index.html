@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dhaka Streets: Open World v9.0 — Vice City Metropolitan Edition</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <div id="game-container">
+    <!-- 3D WebGL Viewport -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-banner" style="opacity: 0; transform: translateX(-50%) translateY(-16px);">
+      <div id="toast-title" class="text-sm font-extrabold tracking-wide uppercase"></div>
+      <div id="toast-subtitle" class="text-xs text-slate-200 mt-0.5 bengali-text"></div>
+    </div>
+
+    <!-- Floating "+ ৳500" Cash Pickup Animation Popup -->
+    <div id="cash-pickup-popup" class="fixed top-1/2 left-1/2 pointer-events-none z-50 text-3xl font-black text-emerald-400 drop-shadow-[0_4px_12px_rgba(16,185,129,0.85)] transition-all duration-300" style="opacity: 0; transform: translate(-50%, 0px) scale(0.95);">
+      + ৳500
+    </div>
+
+    <!-- IN-GAME HUD LAYER (Version 6.0 Clean Classic Vice-City Reference Layout) -->
+    <div id="hud-layer" class="hidden">
+      <!-- Top HUD Row: Minimal Quick-Bar (Top-Left) + Classic Arcade Status Stack (Top-Right) -->
+      <div class="hud-top">
+        <!-- Top Left: Compact Quick-Action Pill Bar + Sleek Mission Objective Line -->
+        <div class="hud-top-left">
+          <div class="glass-panel px-2 py-1 flex flex-wrap items-center gap-1 interactive-ui">
+  <button id="btn-hud-pause" class="px-2 py-0.5 rounded bg-slate-900/90 hover:bg-amber-600 text-[10px] font-bold text-slate-300 border border-slate-700 transition" title="Pause & Controls [Esc]">⏸️ [Esc]</button>
+  <button id="btn-hud-quick-map" class="px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-500/50 text-[10px] font-extrabold text-emerald-300 border border-emerald-400/50 transition" title="Open Map & GPS [M]">🗺️ Map [M]</button>
+  <button id="btn-hud-quick-showroom" class="px-2 py-0.5 rounded bg-amber-500/30 hover:bg-amber-500/50 text-[10px] font-extrabold text-amber-200 border border-amber-400/50 transition" title="Go to / Open 3D Bike Showroom">🏍️ Showroom</button>
+  <button id="btn-hud-quick-mall" class="px-2 py-0.5 rounded bg-purple-600/30 hover:bg-purple-500/50 text-[10px] font-extrabold text-purple-200 border border-purple-400/50 transition" title="Open Shopping Mall">🛍️ Mall</button>
+  <button id="btn-hud-quick-bar" class="px-2 py-0.5 rounded bg-pink-600/35 hover:bg-pink-500/55 text-[10px] font-extrabold text-pink-200 border border-pink-400/60 transition" title="Open Blue Moon Bar & GF Date Lounge">🍸 Bar & GF</button>
+</div><div class="hidden">
+            <button id="btn-hud-mode-toggle" class="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-400/50 text-[11px] font-extrabold transition" title="Switch Day Mode / Night Mode [N]">☀️ Day [N]</button>
+            <button id="btn-hud-subtime-cycle" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-[11px] font-bold transition" title="Cycle Morning / Afternoon / Sunset [T]">☀️ Afternoon [T]</button>
+            <button id="btn-hud-showroom" class="px-2 py-0.5 rounded bg-amber-500/30 hover:bg-amber-500/45 text-amber-200 border border-amber-400 text-[11px] font-extrabold transition" title="Inspect 3D Bike Showroom (10 Motorcycles)">🏍️ Showroom</button>
+            <button id="btn-hud-shops" class="px-2 py-0.5 rounded bg-purple-600/30 hover:bg-purple-500/45 text-purple-200 border border-purple-400 text-[11px] font-extrabold transition" title="Open Dhaka Retail Shops">🛍️ Shops</button>
+            <button id="btn-hud-empire" class="px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-500/40 text-emerald-300 border border-emerald-400/50 text-[11px] font-extrabold transition" title="Open Real Estate Empire, Garage & Wallet [G]">🏢 Garage [G]</button>
+            <button id="btn-hud-map" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-emerald-600 text-[11px] font-bold transition" title="Open City Map [M]">🗺️ Map</button>
+            <button id="btn-hud-save" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-emerald-600 text-[11px] font-bold transition" title="Save Game Progress">💾</button>
+            <button id="btn-hud-camera" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold transition" title="Cycle Camera Distance [V]">🎥 [V]</button>
+            <button id="btn-hud-mute" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold transition" title="Mute / Unmute Audio">🔊</button>
+            
+          </div>
+
+          <!-- Sleek Minimal Mission Objective Pill -->
+          <div class="glass-panel mission-card">
+            <div class="flex items-center justify-between gap-2">
+              <span id="hud-mission-title" class="text-[11px] font-extrabold text-amber-300 bengali-text truncate">Free Roam — Explore Dhaka City</span>
+              <button id="btn-abort-mission" class="hidden interactive-ui text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/40 transition">Abort</button>
+            </div>
+            <div id="hud-mission-obj" class="text-[10px] text-slate-300 mt-0.5 leading-snug truncate">Walk into the 3D Bike Showroom beside Shahbagh & press [E] to view motorcycles.</div>
+            <div id="hud-mission-timer" class="hidden text-xs font-extrabold text-emerald-300 mt-1">⏱️ 90s remaining</div>
+          </div>
+        </div>
+
+        <!-- Top Right: Classic Open-World Status Cluster (Clock, Money, Health, Wanted Stars) -->
+        <div class="hud-top-right">
+          <div class="glass-panel px-3.5 py-2 min-w-[215px] flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-3">
+              <span id="hud-clock" class="text-sm font-black tracking-wider text-amber-300 font-mono">13:30</span>
+              <span id="hud-weather-badge" class="text-[10px] font-bold text-slate-300">☀️ Afternoon</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider">BDT</span>
+              <span id="hud-money" class="text-base font-black text-emerald-400 font-mono tracking-tight">WALLET: ৳95,000</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+              <div id="hud-health-bar" class="h-full bg-gradient-to-r from-rose-500 via-emerald-500 to-teal-300 transition-all duration-200" style="width: 100%;"></div>
+            </div>
+            <div id="hud-health-text" class="text-[10px] font-bold text-rose-200 text-right">♥ Health: 100%</div>
+          </div>
+
+          <div class="glass-panel wanted-container">
+            <div class="wanted-stars">
+              <span id="wanted-star-1" class="star-icon">★</span>
+              <span id="wanted-star-2" class="star-icon">★</span>
+              <span id="wanted-star-3" class="star-icon">★</span>
+              <span id="wanted-star-4" class="star-icon">★</span>
+              <span id="wanted-star-5" class="star-icon">★</span>
+            </div>
+            <div id="hud-wanted-status" class="text-[9px] font-bold tracking-wider text-slate-400">CLEAR • NO POLICE ALERT</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Context-Sensitive Interaction Prompt Pill -->
+      <div id="hud-interaction-prompt" class="interaction-prompt" style="opacity: 0;">
+        <span id="hud-prompt-key" class="key-pill">E</span>
+        <span id="hud-prompt-text" class="text-white bengali-text">Press E to View Bike</span>
+      </div>
+
+      <!-- Bottom HUD Row: Classic Bottom-Left Rotating Radar Minimap + Touch Pad | Bottom-Right District & Vehicle Callout -->
+      <div class="hud-bottom">
+        <!-- Bottom-Left: Rotating Circular Radar Minimap (Matches GTA Vice City Reference Position!) + Compact Touch Pad -->
+        <div class="flex items-end gap-2.5">
+          <div id="minimap-click-box" class="minimap-wrapper interactive-ui" title="Click or Press [M] to Open Full 2,900x2,900m Dhaka Map">
+            <canvas id="minimap-canvas" width="176" height="176"></canvas>
+            <div class="minimap-badge">
+              <span>RADAR [M]</span>
+              <span>GPS</span>
+            </div>
+          </div>
+
+          <div class="hidden">
+            <div class="flex items-center gap-1.5">
+              <div class="grid grid-cols-3 gap-1">
+                <div></div>
+                <button id="touch-up" class="touch-btn" title="Move Forward / Accelerate [W]">W</button>
+                <div></div>
+                <button id="touch-left" class="touch-btn" title="Turn Left [A]">A</button>
+                <button id="touch-down" class="touch-btn" title="Reverse / Brake [S]">S</button>
+                <button id="touch-right" class="touch-btn" title="Turn Right [D]">D</button>
+              </div>
+              <div class="flex flex-col gap-1">
+                <div class="flex gap-1">
+                  <button id="touch-action-e" class="touch-btn !w-10 !bg-emerald-600/40 !border-emerald-400" title="View Bike / Shop / Enter Vehicle [E]">E</button>
+                  <button id="touch-action-f" class="touch-btn !w-10 !bg-amber-600/40 !border-amber-400" title="Exit Vehicle [F]">F</button>
+                </div>
+                <div class="flex gap-1">
+                  <button id="touch-action-h" class="touch-btn !w-10" title="Horn / Bell [H]">📢</button>
+                  <button id="touch-action-p" class="touch-btn !w-10" title="Snap Photo [P]">📸</button>
+                </div>
+                <div class="flex gap-1">
+                  <button id="touch-brake" class="touch-btn !w-10 !h-7 !text-[9px]" title="Jump / Handbrake [Space]">SPC</button>
+                  <button id="touch-sprint" class="touch-btn !w-10 !h-7 !text-[9px]" title="Sprint [Shift]">SHF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom-Right: Classic Stylized District Name + Vehicle Callout & Speedometer -->
+        <div class="flex flex-col items-end gap-1.5">
+          <div class="hidden">
+            <div class="district-icon !w-6 !h-6 !text-xs">ঢা</div>
+            <div class="text-right">
+              <div id="hud-district-en" class="text-[11px] font-black uppercase tracking-wider text-amber-300">Shahbagh & Moto Showroom Hub</div>
+              <div id="hud-district-bn" class="text-[10px] text-slate-300 bengali-text">শাহবাগ চত্বর ও বাইক শোরুম</div>
+            </div>
+          </div>
+
+          <div class="glass-panel speedometer-panel">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <div id="hud-vehicle-name" class="text-xs font-extrabold uppercase tracking-wide text-emerald-300">On Foot (Arif)</div>
+                <div id="hud-vehicle-bn" class="text-[10px] text-slate-300 bengali-text">পায়ে হাঁটা • ঢাকা স্ট্রিটস</div>
+              </div>
+              <span id="hud-gear-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-black">FOOT</span>
+            </div>
+
+            <div class="speed-readout">
+              <div class="flex items-baseline gap-1.5">
+                <span id="hud-speed-val" class="speed-value">000</span>
+                <span class="text-[11px] font-bold text-slate-400 uppercase">KM/H</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-semibold">[E] Use • [F] Exit • [V] Cam</span>
+            </div>
+
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="hud-speed-bar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 transition-all duration-100" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D WALK-IN MOTORCYCLE SHOWROOM INSPECTION & PURCHASE OVERLAY -->
+    <div id="showroom-overlay" class="fixed inset-0 z-40 pointer-events-none flex flex-col justify-between p-5 hidden">
+      <!-- Top Showroom Header -->
+      <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-3 pointer-events-auto border border-emerald-400/50">
+        <div>
+          <div class="text-[11px] font-extrabold uppercase tracking-widest text-amber-300">DHAKA 3D MOTORCYCLE DEALERSHIP & SHOWROOM</div>
+          <h2 class="text-xl font-black text-white bengali-text">ঢাকা মটো শোরুম • 360° LIVE SHOWROOM CAMERA</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="showroom-wallet-balance" class="px-3.5 py-1.5 rounded-xl bg-emerald-950 border border-emerald-400 text-sm font-black text-emerald-300">WALLET: ৳95,000</span>
+          <button id="btn-close-showroom" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-extrabold text-white border border-slate-600">Exit Showroom [Esc]</button>
+        </div>
+      </div>
+
+      <!-- Bottom Showroom Inspection & Purchase Card -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end pointer-events-auto">
+        <!-- Left 7 Cols: Quick 10-Bike Catalog Strip -->
+        <div class="lg:col-span-7 glass-panel p-3.5 border border-slate-700">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">10 Displayed Showroom Motorcycles (Click Any Platform)</span>
+            <div class="flex gap-1.5">
+              <button id="btn-showroom-prev" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-600">◀ Prev Bike</button>
+              <button id="btn-showroom-next" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-600">Next Bike ▶</button>
+            </div>
+          </div>
+          <div id="showroom-catalog-strip" class="grid grid-cols-2 sm:grid-cols-5 gap-1.5"></div>
+        </div>
+
+        <!-- Right 5 Cols: Selected Bike Specs & Purchase Validation Box -->
+        <div class="lg:col-span-5 glass-panel p-5 border-2 border-emerald-500/50 flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span id="showroom-bike-index" class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">Display Platform 1 of 10</span>
+              <h3 id="showroom-bike-name" class="text-2xl font-black text-white">City Street 125</h3>
+              <div id="showroom-bike-bn" class="text-xs text-amber-300 bengali-text">সিটি স্ট্রিট ১২৫ কমিউটার • Street Bike</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] font-bold text-slate-400 uppercase">SHOWROOM PRICE</div>
+              <div id="showroom-bike-price" class="text-2xl font-black text-emerald-400">৳45,000</div>
+            </div>
+          </div>
+
+          <p id="showroom-bike-desc" class="text-xs text-slate-300 leading-relaxed"></p>
+
+          <!-- Performance Bars: Max Speed, Acceleration, Handling -->
+          <div class="flex flex-col gap-2 bg-slate-900/90 p-3 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <div class="flex justify-between font-bold mb-1">
+                <span class="text-slate-300">Maximum Speed</span>
+                <span id="showroom-val-speed" class="text-emerald-300">119 km/h</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="showroom-bar-speed" class="h-full bg-emerald-400" style="width: 60%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between font-bold mb-1">
+                <span class="text-slate-300">Acceleration</span>
+                <span id="showroom-val-accel" class="text-amber-300">32 m/s²</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="showroom-bar-accel" class="h-full bg-amber-400" style="width: 55%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between font-bold mb-1">
+                <span class="text-slate-300">Cornering & Handling</span>
+                <span id="showroom-val-handling" class="text-cyan-300">82/100</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="showroom-bar-handling" class="h-full bg-cyan-400" style="width: 82%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="showroom-afford-state" class="text-xs font-black text-emerald-400">✓ WALLET HAS SUFFICIENT FUNDS</div>
+          <div id="showroom-purchase-feedback" class="hidden"></div>
+
+          <button id="btn-showroom-purchase" class="w-full py-3 px-4 rounded-xl font-black text-sm bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-lg">
+            PURCHASE BIKE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 INTERACTIVE RETAIL SHOPS MODAL (CLOTHING, CONVENIENCE, BIKE ACCESSORIES, REPAIR, GENERAL MARKET) -->
+    <div id="shop-overlay" class="modal-overlay hidden">
+      <div class="glass-panel w-full max-w-4xl p-6 border border-purple-500/40 max-h-[92vh] overflow-y-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 id="shop-modal-title" class="text-xl font-black text-white">Dhaka Fashion & Panjabi House</h2>
+            <p id="shop-modal-bn" class="text-xs text-purple-300 bengali-text">ঢাকা ফ্যাশন ও পাঞ্জাবি হাউস</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="shop-wallet-balance" class="px-3.5 py-1.5 rounded-xl bg-emerald-950 border border-emerald-400 text-sm font-black text-emerald-300">WALLET: ৳95,000</span>
+            <button id="btn-close-shop" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-extrabold text-white border border-slate-600">Close Shop [Esc]</button>
+          </div>
+        </div>
+
+        <!-- Switch between the 5 Shop Types -->
+        <div id="shop-category-tabs" class="flex flex-wrap gap-2 mb-4"></div>
+
+        <div id="shop-purchase-feedback" class="hidden"></div>
+
+        <div id="shop-items-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu-overlay" class="modal-overlay">
+      <div class="glass-panel w-full max-w-xl p-7 border border-emerald-500/30 shadow-2xl max-h-[95vh] overflow-y-auto">
+        <div id="panel-main">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold tracking-widest uppercase">Version 9.0 • Vice City 256 km² Edition</span>
+            <span class="text-xs font-bold text-amber-300 bengali-text">ঢাকা স্ট্রিটস: ওপেন ওয়ার্ল্ড</span>
+          </div>
+          <h1 class="text-4xl font-black tracking-tight text-white mb-1">DHAKA STREETS</h1>
+          <p class="text-xs text-slate-300 mb-4">Explore the <strong>16,000m × 16,000m (256.00 km²) Dhaka Metropolis & Outskirts</strong> with 10 Detailed Motorcycles, a Walk-In 3D Bike Showroom, 5 Interactive Retail Shops, Anatomical Human Characters, and Balanced Traffic (5% CNG, 30% Motorcycles).</p>
+
+          <!-- Instant World Mode Selector Box on Main Menu -->
+          <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/90 mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-300">Select World Lighting Mode</span>
+              <span class="text-[11px] text-emerald-400 font-semibold bengali-text">দিন অথবা রাতের ঢাকা</span>
+            </div>
+            <div class="flex gap-2 mb-2.5">
+              <button id="btn-menu-day-mode" class="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs border-2 border-amber-400 bg-amber-500/25 text-amber-200 transition flex items-center justify-center gap-1.5 shadow-lg">
+                <span>☀️ DAY MODE</span>
+              </button>
+              <button id="btn-menu-night-mode" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs border border-slate-700 bg-slate-800/80 text-slate-300 hover:border-slate-500 transition flex items-center justify-center gap-1.5">
+                <span>🌙 NIGHT MODE</span>
+              </button>
+            </div>
+            <div id="menu-day-subtime-row" class="flex gap-1.5 transition-opacity">
+              <button id="btn-subtime-morning" class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold bg-slate-800/90 border border-slate-700 text-slate-300 hover:border-slate-500 transition">🌅 Morning</button>
+              <button id="btn-subtime-afternoon" class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-extrabold bg-emerald-500/30 border border-emerald-400 text-emerald-200 transition">☀️ Afternoon</button>
+              <button id="btn-subtime-sunset" class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold bg-slate-800/90 border border-slate-700 text-slate-300 hover:border-slate-500 transition">🌇 Sunset</button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2.5">
+            <button id="btn-play-game" class="menu-btn menu-btn-primary">
+              <span>▶ New Game (Spawn at Dhaka Bike Showroom)</span>
+              <span class="text-xs font-extrabold uppercase">Wallet ৳95,000</span>
+            </button>
+            <button id="btn-continue-game" class="menu-btn">
+              <span>⏭ Continue / Load Saved Game</span>
+              <span class="text-xs text-emerald-300">Restore Bikes, Cash & Properties</span>
+            </button>
+            <button id="btn-open-showroom-menu" class="menu-btn">
+              <span>🏍️ Enter 3D Motorcycle Showroom</span>
+              <span class="text-xs text-amber-300">Inspect & Buy 10 Bikes</span>
+            </button>
+            <button id="btn-open-empire-menu" class="menu-btn">
+              <span>🏢 Vehicle Garage, Properties & Wallet Ledger</span>
+              <span class="text-xs text-emerald-300">Manage Collection</span>
+            </button>
+            <button id="btn-open-modes" class="menu-btn">
+              <span>🌓 Select Game Mode (Detailed Preview)</span>
+              <span class="text-xs text-cyan-300">Day Mode vs Night Mode</span>
+            </button>
+            <button id="btn-open-settings" class="menu-btn">
+              <span>⚙️ Environment & Audio Settings</span>
+              <span class="text-xs text-slate-400">Time, Rain, Sound</span>
+            </button>
+            <button id="btn-open-controls" class="menu-btn">
+              <span>🎮 Game Controls & Vehicle Guide</span>
+              <span class="text-xs text-slate-400">Keyboard, Mouse & Touch</span>
+            </button>
+            <button id="btn-open-about" class="menu-btn">
+              <span>🏙️ About Dhaka Streets v5.0</span>
+              <span class="text-xs text-slate-400">16 Districts, 10 Bikes & 5 Shops</span>
+            </button>
+          </div>
+          <div class="mt-4 pt-2.5 border-t border-slate-800/80 text-center">
+            <span class="text-[11px] font-semibold tracking-wider text-slate-400">Developed by Mahfuz</span>
+          </div>
+        </div>
+
+        <!-- Detailed Mode Selection Panel -->
+        <div id="panel-modes" class="hidden">
+          <h2 class="text-2xl font-black text-white mb-1">Select World Mode</h2>
+          <p class="text-xs text-slate-300 mb-4">Click any preset below to watch the live 3D Dhaka background smoothly transition before entering the game.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            <button id="card-select-day-morning" class="p-3.5 rounded-xl bg-slate-800/90 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-400 text-left transition">
+              <div class="text-sm font-black text-amber-300">🌅 DAY: MORNING (07:30)</div>
+              <div class="text-xs text-emerald-300 bengali-text mb-1">স্নিগ্ধ সকাল • ঢাকা</div>
+              <p class="text-[11px] text-slate-300">Warm low-angle eastern sunlight, crisp long shadows, and clear morning sky.</p>
+            </button>
+
+            <button id="card-select-day-afternoon" class="p-3.5 rounded-xl bg-slate-800/90 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-400 text-left transition">
+              <div class="text-sm font-black text-amber-300">☀️ DAY: AFTERNOON (13:30)</div>
+              <div class="text-xs text-emerald-300 bengali-text mb-1">রৌদ্রোজ্জ্বল দুপুর • ঢাকা</div>
+              <p class="text-[11px] text-slate-300">Vibrant blue sky, bright tropical zenith sunlight, glass tower reflections, and vivid foliage.</p>
+            </button>
+
+            <button id="card-select-day-sunset" class="p-3.5 rounded-xl bg-slate-800/90 hover:bg-orange-500/20 border border-slate-700 hover:border-orange-400 text-left transition">
+              <div class="text-sm font-black text-orange-300">🌇 DAY: EVENING SUNSET (17:45)</div>
+              <div class="text-xs text-emerald-300 bengali-text mb-1">গোধূলি সন্ধ্যা • হাতিরঝিল</div>
+              <p class="text-[11px] text-slate-300">Golden-orange horizon haze, dramatic sunset shadows, and early twilight reflections.</p>
+            </button>
+
+            <button id="card-select-night" class="p-3.5 rounded-xl bg-indigo-950/80 hover:bg-cyan-500/20 border border-cyan-500/50 hover:border-cyan-300 text-left transition">
+              <div class="text-sm font-black text-cyan-300">🌙 NIGHT MODE (21:30)</div>
+              <div class="text-xs text-amber-300 bengali-text mb-1">রাতের আলোকজ্জ্বল ঢাকা</div>
+              <p class="text-[11px] text-slate-200">Moonlit starry sky, road-illuminating street lamps, glowing Bengali neon signs, lit windows & headlights.</p>
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-2.5">
+            <button id="btn-launch-selected-mode" class="menu-btn menu-btn-primary">
+              <span>▶ Start Game in Selected Mode</span>
+              <span>Launch Now</span>
+            </button>
+            <button class="btn-back-menu menu-btn">
+              <span>← Back to Main Menu</span>
+              <span>Return</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="panel-settings" class="hidden">
+          <h2 class="text-2xl font-black text-white mb-1">Environment & Game Settings</h2>
+          <p class="text-xs text-slate-400 mb-5">Customize Dhaka's time of day, monsoon weather, and audio levels in real time.</p>
+
+          <div class="flex flex-col gap-4 mb-6">
+            <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700">
+              <div class="flex justify-between text-xs font-bold mb-2">
+                <span>Time of Day (Sunrise / Noon / Sunset / Night)</span>
+                <span id="label-time-val" class="text-emerald-400">13:30</span>
+              </div>
+              <input id="slider-time" type="range" min="0" max="23.9" step="0.25" value="13.5" class="w-full accent-emerald-400 cursor-pointer" />
+              <label class="flex items-center gap-2 text-xs text-slate-300 mt-2 cursor-pointer">
+                <input id="toggle-auto-daynight" type="checkbox" class="accent-emerald-400" />
+                <span>Enable Continuous Auto Day/Night Cycle</span>
+              </label>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700">
+              <label class="block text-xs font-bold mb-2">Dhaka Weather Condition</label>
+              <select id="select-weather" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-semibold">
+                <option value="clear">☀️ Clear Dhaka Sky</option>
+                <option value="sunset">🌇 Golden Sunset Haze</option>
+                <option value="rain">🌧️ Kalbaishakhi Monsoon Rain & Wet Roads</option>
+              </select>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700">
+              <div class="flex justify-between text-xs font-bold mb-2">
+                <span>Master Audio Volume (Engines, Horns, Rickshaw Bells, Sirens)</span>
+                <span id="label-vol-val" class="text-emerald-400">65%</span>
+              </div>
+              <input id="slider-volume" type="range" min="0" max="1" step="0.05" value="0.65" class="w-full accent-emerald-400 cursor-pointer" />
+            </div>
+          </div>
+
+          <button class="btn-back-menu menu-btn menu-btn-primary">
+            <span>← Save & Return</span>
+            <span>Done</span>
+          </button>
+        </div>
+
+        <!-- Controls Panel -->
+        <div id="panel-controls" class="hidden">
+          <h2 class="text-2xl font-black text-white mb-1">PC & Touch Controls</h2>
+          <p class="text-xs text-slate-400 mb-4">Full keyboard, mouse orbit camera, and on-screen touch buttons supported.</p>
+
+          <div class="grid grid-cols-2 gap-2.5 text-xs mb-6">
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Move / Steer / Accelerate</span>
+              <span class="font-extrabold text-emerald-400">W, A, S, D</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Sprint / Handbrake</span>
+              <span class="font-extrabold text-emerald-400">Shift / Space</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">View Bike / Shop / Enter Vehicle</span>
+              <span class="font-extrabold text-amber-400">E</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Exit Vehicle</span>
+              <span class="font-extrabold text-amber-400">F</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Garage, Properties & Wallet</span>
+              <span class="font-extrabold text-emerald-400">G / O</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Switch Day / Night Mode</span>
+              <span class="font-extrabold text-cyan-400">N / T</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Horn / Headlights Toggle</span>
+              <span class="font-extrabold text-amber-400">H / L</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 flex justify-between">
+              <span class="text-slate-300">Open Full Map & Fast Travel</span>
+              <span class="font-extrabold text-cyan-400">M</span>
+            </div>
+          </div>
+
+          <button class="btn-back-menu menu-btn menu-btn-primary">
+            <span>← Back to Menu</span>
+            <span>Done</span>
+          </button>
+        </div>
+
+        <!-- About Panel -->
+        <div id="panel-about" class="hidden">
+          <h2 class="text-2xl font-black text-white mb-2">About Dhaka Streets v5.0</h2>
+          <p class="text-xs text-slate-300 leading-relaxed mb-4">
+            Version 5.0 delivers an 8.41 km² (2,900m × 2,900m) open-world Dhaka & Outskirts map, 10 distinct motorcycle classes displayed inside a walk-in 3D Motorcycle Showroom, 5 interactive shop types, balanced traffic weights (5% CNG, 30% Motorcycles, 32% Cars), and a 14-joint sculpted anatomical South Asian human rig.
+          </p>
+          <button class="btn-back-menu menu-btn menu-btn-primary">
+            <span>← Back to Menu</span>
+            <span>Done</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAUSE MENU OVERLAY -->
+    <div id="pause-overlay" class="modal-overlay hidden">
+      <div class="glass-panel w-full max-w-md p-6 border border-amber-500/30">
+        <h2 class="text-2xl font-black text-white mb-1">GAME PAUSED</h2>
+        <p class="text-xs text-slate-400 mb-5 bengali-text">ঢাকা স্ট্রিটস বিরতি মেনু</p>
+        <div class="flex flex-col gap-3">
+          <button id="btn-resume-game" class="menu-btn menu-btn-primary">
+            <span>▶ Resume Exploring Dhaka</span>
+            <span>[Esc]</span>
+          </button>
+          <button id="btn-pause-save" class="menu-btn">
+            <span>💾 Save Game Progress</span>
+            <span>Save Now</span>
+          </button>
+          <button id="btn-pause-toggle-mode" class="menu-btn">
+            <span>🌓 Switch Day Mode / Night Mode</span>
+            <span>[N]</span>
+          </button>
+          <button id="btn-pause-settings" class="menu-btn">
+            <span>⚙️ Environment & Audio Settings</span>
+            <span>Time / Weather</span>
+          </button>
+          <button id="btn-pause-controls" class="menu-btn">
+            <span>🎮 View Controls</span>
+            <span>Keys & Touch</span>
+          </button>
+          <button id="btn-pause-mainmenu" class="menu-btn">
+            <span>🏠 Save & Return to Main Menu</span>
+            <span>Exit</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REAL ESTATE EMPIRE, VEHICLE GARAGE, WARDROBE & WALLET LEDGER MODAL [G] -->
+    <div id="empire-overlay" class="modal-overlay hidden">
+      <div class="glass-panel w-full max-w-6xl p-5 border border-emerald-500/40 max-h-[94vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-xl font-black text-white">DHAKA GARAGE COLLECTION, REAL ESTATE EMPIRE & WALLET LEDGER</h2>
+            <p class="text-xs text-slate-300">Manage your owned motorcycles & cars, customize vehicles, buy properties, and inspect your Wallet transaction history.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="empire-cash-display" class="px-3.5 py-1.5 rounded-lg bg-emerald-950 border border-emerald-400 text-sm font-black text-emerald-300">WALLET: ৳95,000</span>
+            <button id="btn-close-empire" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-slate-950">Close [G]</button>
+          </div>
+        </div>
+
+        <!-- Active Vehicle Customizer Bar -->
+        <div id="active-vehicle-customizer" class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700 mb-4"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Left 5 Cols: 8 Purchasable Dhaka Properties & Wallet Ledger -->
+          <div class="lg:col-span-5 flex flex-col gap-4">
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-400 mb-2">🏢 Purchasable Dhaka Properties & Businesses</div>
+              <div id="empire-properties-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-amber-300 mb-2">📒 Wallet Income & Expense History</div>
+              <div id="wallet-ledger-list" class="flex flex-col gap-1"></div>
+            </div>
+          </div>
+
+          <!-- Right 7 Cols: 21-Vehicle & 10-Motorcycle Garage + Character Wardrobe -->
+          <div class="lg:col-span-7 flex flex-col gap-4">
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-amber-400 mb-2">🏍️ Owned & Purchasable Motorcycles, Cars & Watercraft (21 Models)</div>
+              <div id="empire-garage-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[310px] overflow-y-auto pr-1"></div>
+            </div>
+
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-cyan-400 mb-2">👕 Character Wardrobe & Bangladeshi Outfits</div>
+              <div id="empire-wardrobe-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL-SCREEN INTERACTIVE ZOOMABLE DHAKA MAP & VENUE GPS DIRECTORY MODAL [M] -->
+    <div id="map-overlay" class="modal-overlay hidden">
+      <div class="glass-panel w-full max-w-6xl p-5 border border-emerald-500/40 max-h-[95vh] overflow-y-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 class="text-xl font-black text-white">INTERACTIVE DHAKA CITY MAP & VENUE GPS FINDER</h2>
+            <p class="text-xs text-slate-300">Click any venue on the map or use the directory on the right to set a 3D GPS route or go directly to the Bike Showroom, Shopping Mall, Bar, or GF Nadia!</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button id="btn-map-zoom-street" class="px-2.5 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-extrabold transition">🔍 Street View (Showroom/Mall/Bar)</button>
+            <button id="btn-map-zoom-city" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-bold transition">🔍 Metro View</button>
+            <button id="btn-map-zoom-full" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-bold transition">🔍 Full 16km Map</button>
+            <button id="btn-clear-waypoint" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-cyan-300 border border-slate-600">Clear GPS</button>
+            <button id="btn-close-map" class="px-3.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-xs font-extrabold text-white">Close [M]</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div class="lg:col-span-6 flex flex-col items-center">
+            <div class="relative w-full aspect-square max-w-[460px] rounded-xl overflow-hidden border-2 border-emerald-500/50 cursor-crosshair">
+              <canvas id="full-map-canvas" width="540" height="540" class="w-full h-full block"></canvas>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2.5 mt-2 text-[11px] font-bold text-slate-200">
+              <span>🏍️ Bike Showroom</span>
+              <span>🛍️ Shopping Mall</span>
+              <span>🍸 Blue Moon Bar</span>
+              <span>💖 GF Nadia</span>
+              <span>🍽️ Restaurant</span>
+              <span>🔧 Customs</span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 flex flex-col gap-3">
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-pink-400 mb-1.5">📍 Exact Venues: Set 3D GPS Route or Go Directly to Entrance</div>
+              <div id="landmark-venues-directory" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-400 mb-1.5">⚡ Fast Travel to 28 Dhaka & Highway Districts</div>
+              <div id="landmark-fast-travel-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[145px] overflow-y-auto pr-1"></div>
+            </div>
+
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-amber-400 mb-1.5">🏍️ Instant Motorcycle, Car & Boat Delivery (21 Models)</div>
+              <div id="vehicle-spawner-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[145px] overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARREST / BUSTED SCREEN OVERLAY -->
+    <div id="arrest-overlay" class="modal-overlay hidden">
+      <div class="glass-panel w-full max-w-md p-7 text-center border-2 border-red-500/60">
+        <div class="text-xs font-black tracking-widest uppercase text-red-400 mb-1">DHAKA METROPOLITAN PATROL</div>
+        <h2 class="text-4xl font-black text-white mb-2">APPREHENDED!</h2>
+        <p class="text-sm text-slate-200 bengali-text mb-4">ট্রাফিক আইন ভঙ্গের কারণে পুলিশ আপনাকে আটক করেছে</p>
+        <p class="text-xs text-slate-300 mb-5">
+          Police patrol units intercepted your vehicle. You have been fined <span id="arrest-fine-amount" class="font-extrabold text-amber-400">৳2,500</span> and released at Shahbagh Police Box with Wanted Level reset.
+        </p>
+        <button id="btn-arrest-respawn" class="menu-btn menu-btn-primary justify-center">
+          <span>Return to Shahbagh Square</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
