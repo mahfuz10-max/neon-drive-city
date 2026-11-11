@@ -34,41 +34,6 @@ A browser-based 3D open-world action, driving, motorcycle showroom, and explorat
 ### Step 1: Push to GitHub
 Unzip the project folder, open a terminal inside the project directory, and run:
 
-```bash
-git init
-git add .
-git commit -m "Initial commit: Dhaka Streets Open World by Mahfuz"
-git branch -M main
-git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-git push -u origin main
-```
-
-### Step 2: Deploy to Netlify (2 Easy Ways)
-1. **Via GitHub Integration (Recommended):**
-   - Log in to [Netlify](https://app.netlify.com/) and click **Add new site → Import an existing project → GitHub**.
-   - Select your repository.
-   - Netlify will automatically detect `netlify.toml` (`Publish directory: .`, `Build command: (empty)`).
-   - Click **Deploy site** — your game will be live in seconds!
-2. **Via Netlify Drag & Drop:**
-   - Drag and drop the unzipped project folder directly onto [app.netlify.com/drop](https://app.netlify.com/drop).
-
----
-
-## 💻 Local Development
-
-You can run the project locally using any static server or Vite:
-
-```bash
-# Option A: Using Vite Dev Server
-npm install
-npm run dev
-
-# Option B: Open the standalone single-file build directly in any browser
-# Double-click dhaka_streets_open_world.html
-```
-
----
-
 ## 🎮 Controls Guide
 
 | Key / Input | Action |
